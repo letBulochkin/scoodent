@@ -25,7 +25,7 @@ DB_URIS = {
         "options": {
             "schema": constants.DBAPI_POSTGRES,
             "driver": constants.DBDRIVER_PSYCOPG2,
-            "user": os.environ["USER"],
+            "user": "postgres",
             "password": os.environ.get("SCOODENT_DB_PASS", ""),
             "host": os.environ.get("SCOODENT_DB_HOST", "localhost"),
             "port": int(os.environ.get("SCOODENT_DB_PORT", 5432)),
