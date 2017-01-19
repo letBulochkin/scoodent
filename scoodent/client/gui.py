@@ -1,6 +1,6 @@
 """GUI widgets."""
 
-from datetime import date
+from datetime import date, datetime
 
 from PyQt4 import uic
 from PyQt4.QtCore import QDate
@@ -10,20 +10,29 @@ from PyQt4.QtGui import (
 )
 
 from scoodent.common import db, config
-from scoodent.models import Student, Report, Discipline, StudentGroup
+from scoodent.models import Actor, Genre, Disk, Customer, Rental
 
 
-def from_datetime(date):
+def from_date(date):
     """Return QDate object from datetime.date."""
 
     return QDate(date.year, date.month, date.day)
 
 
-def to_datetime(qdate):
+def to_date(qdate):
     """Return datetime.date object from QDate."""
 
     return date(day=qdate.day(), month=qdate.month(), year=qdate.year())
 
+
+def from_datetime(datetime):
+
+    return QDateTime(datetime.year, datetime.month, datetime.day, datetime.hour, datetime.minute)
+
+
+def to_datetime(qdatetime):
+
+    return datetime(minute=qdatetime.minute(), hour=qdatetime.hour(), day=qdatetime.day(), month=qdatetime.month(), year=qdatetime.year())
 
 class DeleteDialog(QDialog):
     """Represents dialog for delete confirmation."""
@@ -40,94 +49,135 @@ def required_field_empty_warning(parent, msg="One or more fields are empty."):
 
     QMessageBox.warning(parent, "Error", msg)
 
+class DiskDialog(QDialog):
 
-class StudentDialog(QDialog):
+    def __init__(self, model_id):
+        QDialog.__init__(self)
+        uic.loadUi(config.UI["disk_dialog"], self)
+
+        self.disk_id = model_id
+        self.pb_add_disk.clicked.connect(self.add_disk)
+
+        self.load_disk_info()
+
+    def load_disk_info(self):
+
+        session = db.get_session()
+        disk = session.query(Disk).filter(
+            Disk.id == self.disk_id
+        ).first()
+
+        self.le_title.setText(disk.title)
+        self.le_director.setText(disk.director)
+        self.le_year.setText(str(disk.year))
+        self.cd_existance.setChecked(disk.existance)
+        self.de_acq_date.setDate(from_date(disk.acq_date))
+        self.sb_rating.setValue(disk.rating)
+
+    def add_disk(self):
+
+        disk = {
+            "acq_date": to_date(self.de_acq_date.date()),
+            "title": str(self.le_title.text()),
+            "director": str(self.le_director.text()),
+            "year": int(self.le_year.text()),
+            # "actors":
+            # "genre":
+            "rating": int(self.sb_rating.value()),
+            "existance": self.cd_existance.checked(),
+        }
+
+class CustomerDialog(QDialog):
     """Implements student interaction."""
 
     def __init__(self, model_id):
         QDialog.__init__(self)
-        uic.loadUi(config.UI["student_dialog"], self)
+        uic.loadUi(config.UI["customer_dialog"], self)
 
-        self.student_id = model_id
-        self.pb_add_student.clicked.connect(self.add_student)
+        self.customer_id = model_id
+        self.pb_add_customer.clicked.connect(self.add_customer)
 
-        self.load_student_info()
+        self.load_customer_info()
 
-    def load_student_info(self):
+    def load_customer_info(self):
         """Get all needed info from DB."""
 
         session = db.get_session()
-        student = session.query(Student).filter(
-            Student.id == self.student_id
+        customer = session.query(Customer).filter(
+            Customer.id == self.customer_id
         ).first()
 
-        self.le_name.setText(student.name)
-        self.le_surname.setText(student.surname)
-        self.de_birthdate.setDate(from_datetime(student.birthdate))
-        self.le_address.setText(student.address)
-        self.le_phone.setText(student.phone)
+        self.le_ph_number.setText(customer.phone_number)
+        self.le_name.setText(customer.name)
+        self.le_passport.setText(customer.passport)
+        self.le_ordered.setText(str(customer.ordered))
+        '''
         self.le_parents_phone.setText(student.parents_phone)
         self.le_school.setText(student.school)
         self.de_enter_date.setDate(from_datetime(student.enter_date))
+        '''
 
-    def add_student(self):
-        student = {
+    def add_customer(self):
+        # from datetime import datetime
+        # datetime.now()
+        customer = {
+            "phone_number": str(self.le_ph_number.text()),
             "name": str(self.le_name.text()),
-            "surname": str(self.le_surname.text()),
-            "birthdate": to_datetime(self.de_birthdate.date()),
-            "address": str(self.le_address.text()),
-            "phone": str(self.le_phone.text()),
-            "parents_phone": str(self.le_parents_phone.text()),
-            "school": str(self.le_school.text()),
-            "enter_date": to_datetime(self.de_enter_date.date()),
+            "passport": str(self.le_passport.text()),
+            "ordered": int(self.le_ordered.text()),
         }
 
-        if not all(student.values()):
+        if not all(customer.values()):
             required_field_empty_warning(self)
         else:
             db.insert_objects(Student(**student))
 
 
-class ReportDialog(QDialog):
+class RentalDialog(QDialog):
     """Implements reports interaction."""
 
     def __init__(self, model_id):
         QDialog.__init__(self)
-        uic.loadUi(config.UI["report_dialog"], self)
+        uic.loadUi(config.UI["rental_dialog"], self)
 
-        self.report_id = model_id
-        self.pb_add_report.clicked.connect(self.add_report)
+        self.rental_id = model_id
+        self.pb_add_rental.clicked.connect(self.add_rental)
 
-        self.load_report_info()
+        self.load_rental_info()
 
-    def load_report_info(self):
+    def load_rental_info(self):
         """Get all needed info from DB."""
 
         session = db.get_session()
-        report = session.query(Report).filter(
-            Report.id == self.report_id
+        rental = session.query(Rental).filter(
+            Rental.id == self.rental_id
         ).first()
 
-        self.lab_report_id.setText(str(report.id))
-        self.lab_mark.setText(str(report.mark))
-        self.de_mark_date.setDate(from_datetime(report.mark_date))
-        self.lab_report_type.setText(report.report_type)
-        self.lab_discipline_id.setText(str(report.discipline_id))
-        self.lab_discipline_name.setText(report.discipline.name)
-        self.lab_student.setText(str(report.student.id))
+        self.le_customer.setText(str(rental.rent_customer))
+        self.customer_name = rental.customer.name
+        self.le_disk.setText(str(rental.rent_customer))
+        self.disk_title = rental.disk.title
+        self.cd_returned.setChecked(rental.returned)
+        self.dte_time_taken.setDateTime(from_datetime(rental.time_taken))
+        # self.dte_time_returned.setDateTime(from_datetime(rental.time_returned))
+        self.le_deposit.setText(rental.deposit)
 
-    def add_report(self):
+    def add_rental(self):
         """Add report to DB."""
+        #TODO
 
         session = db.get_session()
-        report = {
-            "mark": int(self.lab_mark.text()),
-            "mark_date": to_datetime(self.de_mark_date.date()),
-            "report_type": str(self.lab_report_type.text()),
-            "discipline": session.query(Discipline).filter(
-                Discipline.id == int(self.lab_discipline_id.text())),
-            "student": session.query(Student).filter(
-                Student.id == int(self.lab_student.text()))
+        rental = {
+            # "rent_customer": str(self.le_rent_customer()),
+            # "rent_disk": str(self.le_rent_disk()),
+            "rent_customer": session.query(Customer).filter(
+                Customer.id == int(self.le_customer.text())),
+            "rent_disk": session.query(Disk).filter(
+                Disk.id == int(self.le_disk.text())),
+            "returned": self.cd_returned.checked(),
+            "time_taken": to_datetime(self.dte_time_taken.datetime()),
+            # "time_returned"
+            "deposit": int(self.le_deposit.text()),
         }
 
         if not all(report.values()):
@@ -136,64 +186,62 @@ class ReportDialog(QDialog):
             db.insert_objects(Report(**report))
 
 
-class DisciplineDialog(QDialog):
+class GenreDialog(QDialog):
 
     def __init__(self, model_id):
         QDialog.__init__(self)
-        uic.loadUi(config.UI["discipline_dialog"], self)
+        uic.loadUi(config.UI["genre_dialog"], self)
 
-        self.discipline_id = model_id
-        self.pb_add_discipline.clicked.connect(self.add_discipline)
+        self.genre_id = model_id
+        self.pb_add_genre.clicked.connect(self.add_genre)
 
-        self.load_discipline_info()
+        self.load_genre_info()
 
-    def load_discipline_info(self):
+    def load_genre_info(self):
         session = db.get_session()
-        discipline = session.query(Discipline).filter(
-            Discipline.id == self.discipline_id
+        genre = session.query(Genre).filter(
+            Genre.id == self.genre_id
         ).first()
 
-        self.le_name.setText(discipline.name)
+        self.le_name.setText(genre.film_genre if genre else "")
 
-    def add_discipline(self):
-        """Insert new discipline to DB."""
+    def add_genre(self):
+        """Insert new genre to DB."""
 
         name = str(self.le_name.text())
         if not name:
             required_field_empty_warning(self)
         else:
-            db.insert_objects(Discipline(name=name))
+            db.insert_objects(Genre(film_genre=name))
 
 
-class StudentGroupDialog(QDialog):
+class ActorDialog(QDialog):
 
     def __init__(self, model_id):
         QDialog.__init__(self)
-        uic.loadUi(config.UI["group_dialog"], self)
+        uic.loadUi(config.UI["actor_dialog"], self)
 
-        self.group_id = model_id
-        self.pb_add_group.clicked.connect(self.add_group)
+        self.actor_id = model_id
+        self.pb_add_actor.clicked.connect(self.add_actor)
 
-        self.load_group_info()
+        self.load_actor_info()
 
-    def load_group_info(self):
+    def load_actor_info(self):
         session = db.get_session()
-        group = session.query(StudentGroup).filter(
-            StudentGroup.id == self.group_id
+        actor = session.query(Actor).filter(
+            Actor.id == self.actor_id
         ).first()
 
-        self.le_name.setText(group.name)
-        self.ch_fulltime.setChecked(group.fulltime)
+        self.le_name.setText(actor.name if actor else "")
 
-    def add_group(self):
-        """Insert new group to DB."""
+    def add_actor(self):
+        """Insert new actor to DB."""
 
         name = str(self.le_name.text())
-        fulltime = bool(self.ch_fulltime.checked())
         if not name:
             required_field_empty_warning(self)
         else:
-            db.insert_objects(Discipline(name=name, fulltime=fulltime))
+            db.insert_objects(Actor(name=name))
 
 
 class MainWindow(QMainWindow):
@@ -203,13 +251,14 @@ class MainWindow(QMainWindow):
         uic.loadUi(config.UI["main"], self)
 
         self.selected = None
-        self.model = Student
+        self.model = Disk
 
         self.dialog_by_model = {
-            Student: StudentDialog,
-            Report: ReportDialog,
-            Discipline: DisciplineDialog,
-            StudentGroup: StudentGroupDialog,
+            Actor: ActorDialog,
+            Genre: GenreDialog,
+            Disk: DiskDialog,
+            Customer: CustomerDialog,
+            Rental: RentalDialog,
         }
 
         self.action_exit.triggered.connect(self.close)
@@ -224,10 +273,11 @@ class MainWindow(QMainWindow):
         self.pb_add.clicked.connect(pb_add_callback)
         self.pb_delete.clicked.connect(self.remove_selected)
 
-        self.rb_student.clicked.connect(lambda: self.show_table(Student))
-        self.rb_report.clicked.connect(lambda: self.show_table(Report))
-        self.rb_discipline.clicked.connect(lambda: self.show_table(Discipline))
-        self.rb_group.clicked.connect(lambda: self.show_table(StudentGroup))
+        self.rb_actor.clicked.connect(lambda: self.show_table(Actor))
+        self.rb_genre.clicked.connect(lambda: self.show_table(Genre))
+        self.rb_disk.clicked.connect(lambda: self.show_table(Disk))
+        self.rb_customer.clicked.connect(lambda: self.show_table(Customer))
+        self.rb_rental.clicked.connect(lambda: self.show_table(Rental))
 
         # TODO
         self.table_widget.cellClicked.connect(self.select_table_row)

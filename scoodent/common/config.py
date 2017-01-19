@@ -25,8 +25,8 @@ DB_URIS = {
         "options": {
             "schema": constants.DBAPI_POSTGRES,
             "driver": constants.DBDRIVER_PSYCOPG2,
-            "user": "postgres",
-            "password": os.environ.get("SCOODENT_DB_PASS", ""),
+            "user": "videorental_acc1",
+            "password": os.environ.get("SCOODENT_DB_PASS", "pass"),
             "host": os.environ.get("SCOODENT_DB_HOST", "localhost"),
             "port": int(os.environ.get("SCOODENT_DB_PORT", 5432)),
             "dbname": constants.DB_NAME,
@@ -56,10 +56,11 @@ UI_DIR = partial(os.path.join, os.path.join(ROOT, "client"))
 
 UI = {
     "main": UI_DIR("main.ui"),
-    "student_dialog": UI_DIR("student_dialog.ui"),
-    "report_dialog": UI_DIR("report_dialog.ui"),
-    "discipline_dialog": UI_DIR("discipline_dialog.ui"),
-    "group_dialog": UI_DIR("group_dialog.ui"),
+    "customer_dialog": UI_DIR("customer_dialog.ui"),
+    "rental_dialog": UI_DIR("rental_dialog.ui"),
+    "genre_dialog": UI_DIR("genre_dialog.ui"),
+    "actor_dialog": UI_DIR("actor_dialog.ui"),
     "delete_dialog": UI_DIR("delete_dialog.ui"),
+    "disk_dialog": UI_DIR("disk_dialog.ui"),
 }
 """Widget <-> path to .ui mapping."""

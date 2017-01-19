@@ -71,15 +71,15 @@
      <rect>
       <x>10</x>
       <y>3</y>
-      <width>548</width>
+      <width>611</width>
       <height>41</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QRadioButton" name="rb_student">
+      <widget class="QRadioButton" name="rb_disk">
        <property name="text">
-        <string>Student</string>
+        <string>Disk</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -87,9 +87,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="rb_report">
+      <widget class="QRadioButton" name="rb_customer">
        <property name="text">
-        <string>Report</string>
+        <string>Customer</string>
        </property>
        <property name="checked">
         <bool>false</bool>
@@ -97,16 +97,23 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="rb_discipline">
+      <widget class="QRadioButton" name="rb_rental">
        <property name="text">
-        <string>Discipline</string>
+        <string>Rental</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="rb_group">
+      <widget class="QRadioButton" name="rb_genre">
        <property name="text">
-        <string>Group</string>
+        <string>Genre</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="rb_actor">
+       <property name="text">
+        <string>Actor</string>
        </property>
       </widget>
      </item>

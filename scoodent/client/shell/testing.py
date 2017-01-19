@@ -4,10 +4,7 @@ import random
 
 from datetime import date
 
-from scoodent.models import (
-    TReportEnum, Student, Report,
-    Discipline, StudentGroup
-)
+from scoodent.models import Actor, Genre, Customer, Disk, Rental
 
 
 def get_random_date(start, end):
@@ -131,7 +128,8 @@ def random_report():
     }
 
 
-def get_disciplines():
+# TODO
+def get_actors():
     """Return disciplines tuple."""
 
     return (
@@ -149,35 +147,41 @@ def get_disciplines():
     )
 
 
-def get_groups():
-    """Return groups tuple."""
+# TODO
+def get_genres():
+    """Return genres."""
 
     return (
-        ("РГУТАМИ-16-1", False),
-        ("ИТБОНСУ-16-1", False),
-        ("ГОДЗАИ-16-2", True),
-        ("ИМАСУ-15-8", True)
+        "",
+        "ИТБОНСУ-16-1", False),
+        "ГОДЗАИ-16-2", True),
+        "ИМАСУ-15-8", True)
     )
 
 
 def generate_data(session):
     """Generate testing data and fill DB via session."""
 
-    students = (random_student() for _ in range(20))
+    customers = (random_customer() for _ in range(20))
 
-    disciplines = list(map(lambda it: Discipline(name=it), get_disciplines()))
-    session.add_all(disciplines)
+    genres = list(map(lambda it: Genre(film_genre=it), get_genres()))
+    session.add_all(genres)
     session.commit()
 
-    groups = list(
-        map(lambda it: StudentGroup(name=it[0], fulltime=it[1]), get_groups()))
-    session.add_all(groups)
+    actors = list(
+        map(lambda it: Actor(name=it), get_actors()))
+    session.add_all(actors)
     session.commit()
 
-    for student in students:
+    for customer in customers:
+        # get random foreign keys
+
+        customer = Customer(**customer)
+
+        disk["customer"] = customer
+
         group = random.choice(groups)
         student["student_group"] = group
-        student = Student(**student)
 
         report = random_report()
         report["student"] = student

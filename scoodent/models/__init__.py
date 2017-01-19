@@ -1,80 +1,82 @@
 """Scoodent models."""
 
-from collections import namedtuple
-
 from sqlalchemy import (
-    Column, Date, Enum, ForeignKey, Integer, String, Text, Boolean
+    Column, Date, DateTime, Table, ForeignKey, Integer, String, Text, Boolean
 )
 from sqlalchemy.orm import relationship
 
 from scoodent.common.db import Base
 
 
-_TReportType = namedtuple("TReportEnumType", [
-    "exam", "coursework", "credit"
-])
-"""Represents TReport enum type."""
-
-TReportEnum = _TReportType("exam", "coursework", "credit")
-"""TReport mapping."""
-
-TReport = Enum(
-    TReportEnum.exam,
-    TReportEnum.coursework,
-    TReportEnum.credit,
-    name="treport")
+actor_disk_table = Table("actor_disk", Base.metadata,
+    Column("actor_id", Integer, ForeignKey("actor.id")),
+    Column("disk_id", Integer, ForeignKey("disk.id")))
 
 
-class Student(Base):
-    """Student DAO representation."""
+genre_disk_table = Table("genre_disk", Base.metadata,
+    Column("genre_id", Integer, ForeignKey("genre.id")),
+    Column("disk_id", Integer, ForeignKey("disk.id")))
 
-    __tablename__ = "student"
+
+class Actor(Base):
+
+    __tablename__ = "actor"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(64), nullable=False)
-    surname = Column(String(64), nullable=False)
-    birthdate = Column(Date, nullable=False)
-    address = Column(String(128), nullable=False)
-    phone = Column(String(32), nullable=False)
-    parents_phone = Column(String(32), nullable=False)
-    school = Column(String(32), nullable=False)
-    enter_date = Column(Date, nullable=False)
-    student_group_id = Column(
-        Integer, ForeignKey("student_group.id", ondelete="cascade"))
-    student_group = relationship("StudentGroup")
+    name = Column(String(255), nullable=False)
 
 
-class Report(Base):
-    """Report DAO representation."""
+class Genre(Base):
 
-    __tablename__ = "report"
+    __tablename__ = "genre"
 
     id = Column(Integer, primary_key=True)
-    mark = Column(Integer)  # TODO: nullable?
-    mark_date = Column(Date)  # TODO: nullable?
-    report_type = Column(TReport)  # TODO: nullable?
-    discipline_id = Column(
-        Integer, ForeignKey("discipline.id", ondelete="cascade"))
-    student_id = Column(
-        Integer, ForeignKey("student.id", ondelete="cascade"), unique=True)
-    discipline = relationship("Discipline")
-    student = relationship("Student")
+    film_genre = Column(String(255), nullable=False)
 
 
-class Discipline(Base):
-    """Discipline DAO representation."""
+class Disk(Base):
+    """model for disk instance"""
 
-    __tablename__ = "discipline"
+    __tablename__ = "disk"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(64), nullable=False)
+    acq_date = Column(Date, nullable=False)
+    title = Column(String(255), nullable=False)
+    director = Column(String(255), nullable=False)
+    year = Column(Integer)
+    actors = relationship("Actor", secondary=actor_disk_table)
+    genre = relationship("Genre", secondary=genre_disk_table)
+    rating = Column(Integer)
+    existance = Column(Boolean, nullable=False)
 
 
-class StudentGroup(Base):
-    """StudentGroup DAO representation."""
+class Customer(Base):
+    """model for customer instance"""
 
-    __tablename__ = "student_group"
+    __tablename__ = "customer"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(32), nullable=False)
-    fulltime = Column(Boolean, nullable=False)
+    phone_number = Column(String(32))
+    name = Column(String(255), nullable=False)
+    passport = Column(String(255), nullable=False)
+    ordered = Column(Integer, default=0)
+
+
+class Rental(Base):
+    """model for disk rental instance"""
+
+    __tablename__ = "rental"
+    id = Column(Integer, primary_key=True)
+    # if customer name is deleted, delete all his rents
+    rent_customer = Column(Integer,
+        ForeignKey("customer.id", ondelete="cascade"))
+    customer = relationship("Customer")
+
+    # if disk is deleted, do not delete any rents
+    rent_disk = Column(Integer, ForeignKey("disk.id", ondelete="SET NULL"))
+    disk = relationship("Disk")
+
+    returned = Column(Boolean, default=False)
+    time_taken = Column(DateTime)
+    time_returned = Column(DateTime)
+    deposit = Column(Integer)
