@@ -3,7 +3,7 @@
 from datetime import date, datetime
 
 from PyQt4 import uic
-from PyQt4.QtCore import QDate
+from PyQt4.QtCore import QDate, QDateTime
 from PyQt4.QtGui import (
     QDialog, QItemSelectionModel, QLineEdit, QMainWindow,
     QMessageBox, QPushButton, QTableWidgetItem, QVBoxLayout
@@ -32,7 +32,14 @@ def from_datetime(datetime):
 
 def to_datetime(qdatetime):
 
-    return datetime(minute=qdatetime.minute(), hour=qdatetime.hour(), day=qdatetime.day(), month=qdatetime.month(), year=qdatetime.year())
+    return datetime(
+        minute=qdatetime.minute(),
+        hour=qdatetime.hour(),
+        day=qdatetime.day(),
+        month=qdatetime.month(),
+        year=qdatetime.year()
+    )
+
 
 class DeleteDialog(QDialog):
     """Represents dialog for delete confirmation."""
@@ -49,16 +56,19 @@ def required_field_empty_warning(parent, msg="One or more fields are empty."):
 
     QMessageBox.warning(parent, "Error", msg)
 
+
+# TODO: Update list of required fields
 class DiskDialog(QDialog):
 
-    def __init__(self, model_id):
+    def __init__(self, model_id=None):
         QDialog.__init__(self)
         uic.loadUi(config.UI["disk_dialog"], self)
 
         self.disk_id = model_id
         self.pb_add_disk.clicked.connect(self.add_disk)
 
-        self.load_disk_info()
+        if model_id is not None:
+            self.load_disk_info()
 
     def load_disk_info(self):
 
@@ -87,17 +97,19 @@ class DiskDialog(QDialog):
             "existance": self.cd_existance.checked(),
         }
 
+
 class CustomerDialog(QDialog):
     """Implements student interaction."""
 
-    def __init__(self, model_id):
+    def __init__(self, model_id=None):
         QDialog.__init__(self)
         uic.loadUi(config.UI["customer_dialog"], self)
 
         self.customer_id = model_id
         self.pb_add_customer.clicked.connect(self.add_customer)
 
-        self.load_customer_info()
+        if model_id is not None:
+            self.load_customer_info()
 
     def load_customer_info(self):
         """Get all needed info from DB."""
@@ -130,20 +142,21 @@ class CustomerDialog(QDialog):
         if not all(customer.values()):
             required_field_empty_warning(self)
         else:
-            db.insert_objects(Student(**student))
+            db.insert_objects(Customer(**customer))
 
 
 class RentalDialog(QDialog):
     """Implements reports interaction."""
 
-    def __init__(self, model_id):
+    def __init__(self, model_id=None):
         QDialog.__init__(self)
         uic.loadUi(config.UI["rental_dialog"], self)
 
         self.rental_id = model_id
         self.pb_add_rental.clicked.connect(self.add_rental)
 
-        self.load_rental_info()
+        if model_id is not None:
+            self.load_rental_info()
 
     def load_rental_info(self):
         """Get all needed info from DB."""
@@ -180,22 +193,23 @@ class RentalDialog(QDialog):
             "deposit": int(self.le_deposit.text()),
         }
 
-        if not all(report.values()):
+        if not all(rental.values()):
             required_field_empty_warning(self)
         else:
-            db.insert_objects(Report(**report))
+            db.insert_objects(Rental(**rental))
 
 
 class GenreDialog(QDialog):
 
-    def __init__(self, model_id):
+    def __init__(self, model_id=None):
         QDialog.__init__(self)
         uic.loadUi(config.UI["genre_dialog"], self)
 
         self.genre_id = model_id
         self.pb_add_genre.clicked.connect(self.add_genre)
 
-        self.load_genre_info()
+        if model_id is not None:
+            self.load_genre_info()
 
     def load_genre_info(self):
         session = db.get_session()
@@ -217,14 +231,15 @@ class GenreDialog(QDialog):
 
 class ActorDialog(QDialog):
 
-    def __init__(self, model_id):
+    def __init__(self, model_id=None):
         QDialog.__init__(self)
         uic.loadUi(config.UI["actor_dialog"], self)
 
         self.actor_id = model_id
         self.pb_add_actor.clicked.connect(self.add_actor)
 
-        self.load_actor_info()
+        if model_id is not None:
+            self.load_actor_info()
 
     def load_actor_info(self):
         session = db.get_session()
@@ -266,8 +281,8 @@ class MainWindow(QMainWindow):
         # TODO
         def pb_add_callback():
             """Call dialog for current model."""
-            
-            self.dialog_by_model[self.model](1).exec_()
+
+            self.dialog_by_model[self.model]().exec_()
             self.show_table(self.model)
 
         self.pb_add.clicked.connect(pb_add_callback)

@@ -101,6 +101,21 @@ def random_phone():
         random.randint(10, 99))
 
 
+def random_customer():
+    customer = {
+        "phone_number": random_phone(),
+        "name": random_name(),
+        "passport": random_passport(),
+        "ordered": bool(random.getrandbits(1)),
+    }
+
+
+def random_disk():
+    disk = {
+        "title": 
+    }
+
+'''
 def random_student():
     student = {
         "name": random_name(),
@@ -116,8 +131,8 @@ def random_student():
     student["enter_date"] = enter_date
 
     return student
-
-
+'''
+'''
 def random_report():
     """Return random report."""
 
@@ -126,36 +141,113 @@ def random_report():
         "mark_date": random_pass_date(),
         "report_type": random.choice(TReportEnum._fields),
     }
+'''
 
 
-# TODO
-def get_actors():
-    """Return disciplines tuple."""
+def random_passport():
+    """Return random passport data."""
+
+    return "{0}_{1}".format(
+        random.randint(1000,9999), random.randint(100000, 499999))
+
+
+def random_film_name():
+    """Return film names tuple"""
 
     return (
-        "Математический анализ",
-        "ИКТ и ПБРОБЗ 4 ГРОСУ",
-        "Интеллект машин БСУИТ",
-        "ИИ и ИИИ",
-        "Физика ч.4",
-        "Теоритическая полемика топономий",
-        "Философия древнего мира",
-        "История",
-        "Робототехника",
-        "Теория цепных цепей Марка Ву",
-        "Аналитическая геометрия на местности",
+        "Yost and Sons",
+        "Nikolaus-Leannon",
+        "Rutherford LLC",
+        "Boyer, Sauer and Gerlach",
+        "Marks-Emard",
+        "Kuphal, Leannon and Bayer",
+        "Kuhic, Kilback and Weimann",
+        "Blanda, Von and Hoeger",
+        "Farrell-Dach",
+        "Parker Group",
+        "Crist-Cronin",
+        "Kunze-Mitchell",
+        "Zboncak-Nader",
+        "Breitenberg LLC",
+        "Spencer-Moore",
+        "Schimmel Inc",
+        "Bins Group",
+        "Kulas and Sons",
+        "Durgan Inc",
+        "Jacobs Group",
+        "Gibson LLC",
+        "Murray-Huel",
+        "Mayert-Gibson",
+        "Hilll Inc",
+        "Mosciski-Wyman",
+        "Huels and Sons",
+        "Raynor-Wolf",
+        "Yost, Vandervort and Smith",
+        "Powlowski Inc",
+        "Koss, Murray and Kihn",
+        "Hickle LLC",
+        "Renner Group",
+        "Jenkins, Prohaska and Heidenreich",
+        "O'Keefe, Sipes and Schneider",
+        "Wehner-Russel",
+        "Wilderman-Balistreri",
+        "Hoeger and Sons",
+        "Kreiger-Dietrich",
+        "Abshire LLC",
+        "Metz Inc",
+        "Mayert Group",
+        "Hodkiewicz and Sons",
+        "Smith, Crist and Kreiger",
+        "Torphy-Wilkinson",
+        "Cartwright, Feest and Moen",
+        "Hirthe, Wintheiser and Weissnat",
+        "Renner-Abernathy",
+        "Gibson and Sons",
+        "Schaefer-Okuneva",
+        "Bogisich Inc",
+    )
+
+def get_actors():
+    """Return actors."""
+
+    return (
+        "Julia Richardson",
+        "Justin Lane",
+        "Terry Robinson",
+        "Andrea Morgan",
+        "Pamela Morga",
+        "Jean Russell",
+        "Nicole Arnold",
+        "Sharon Simmons",
+        "Keith Watkins",
+        "Anna Howell",
+        "Fred Robertson",
+        "Jane Walker",
+        "Robin Webb",
+        "Christina Carpenter",
+        "Larry Hawkins",
+        "Larry Burns",
+        "Barbara Spencer",
+        "Beverly Kennedy",
+        "Jose Stanley",
+        "Kevin Garcia",
     )
 
 
-# TODO
 def get_genres():
     """Return genres."""
 
     return (
-        "",
-        "ИТБОНСУ-16-1", False),
-        "ГОДЗАИ-16-2", True),
-        "ИМАСУ-15-8", True)
+        "thriller",
+        "comedy",
+        "documentary",
+        "romance",
+        "series",
+        "sci-fi",
+        "fantasy",
+        "detective",
+        "historical",
+        "musicle",
     )
 
 
@@ -168,8 +260,7 @@ def generate_data(session):
     session.add_all(genres)
     session.commit()
 
-    actors = list(
-        map(lambda it: Actor(name=it), get_actors()))
+    actors = list(map(lambda it: Actor(name=it), get_actors()))
     session.add_all(actors)
     session.commit()
 
