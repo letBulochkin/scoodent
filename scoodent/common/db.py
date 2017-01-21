@@ -34,3 +34,14 @@ def insert_objects(obj):
     else:
         session.add(obj)
     session.commit()
+
+
+def update_object(obj, up_id):
+    """Update object in DB."""
+
+    obj.id = up_id
+
+    session = get_session()
+    upd = session.merge(obj)
+
+    session.commit()

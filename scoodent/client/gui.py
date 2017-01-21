@@ -59,6 +59,7 @@ def required_field_empty_warning(parent, msg="One or more fields are empty."):
 
 # TODO: Update list of required fields
 class DiskDialog(QDialog):
+    # TODO: add M-M insertions
 
     def __init__(self, model_id=None):
         QDialog.__init__(self)
@@ -142,7 +143,10 @@ class CustomerDialog(QDialog):
         if not all(customer.values()):
             required_field_empty_warning(self)
         else:
-            db.insert_objects(Customer(**customer))
+            if self.customer_id is None:
+                db.insert_objects(Customer(**customer))
+            else:
+                db.update_object(Customer(**customer), self.customer_id)
 
 
 class RentalDialog(QDialog):
@@ -176,7 +180,7 @@ class RentalDialog(QDialog):
         self.le_deposit.setText(rental.deposit)
 
     def add_rental(self):
-        """Add report to DB."""
+        """Add rental to DB."""
         #TODO
 
         session = db.get_session()
@@ -196,7 +200,10 @@ class RentalDialog(QDialog):
         if not all(rental.values()):
             required_field_empty_warning(self)
         else:
-            db.insert_objects(Rental(**rental))
+            if self.rental_id is None:
+                db.insert_objects(Rental(**rental))
+            else:
+                db.update_object(Rental(**rental), self.rental_id)
 
 
 class GenreDialog(QDialog):
@@ -226,7 +233,10 @@ class GenreDialog(QDialog):
         if not name:
             required_field_empty_warning(self)
         else:
-            db.insert_objects(Genre(film_genre=name))
+            if self.genre_id is None:
+                db.insert_objects(Genre(film_genre=name))
+            else:
+                db.update_object(Genre(film_genre=name), self.genre_id)
 
 
 class ActorDialog(QDialog):
@@ -256,7 +266,10 @@ class ActorDialog(QDialog):
         if not name:
             required_field_empty_warning(self)
         else:
-            db.insert_objects(Actor(name=name))
+            if self.actor_id is None:
+                db.insert_objects(Actor(name=name))
+            else:
+                db.update_object(Actor(name=name), self.actor_id)
 
 
 class MainWindow(QMainWindow):
@@ -356,6 +369,7 @@ class MainWindow(QMainWindow):
         dialog = self.dialog_by_model.get(self.model)
         model_id = int(self.table_widget.item(row, 0).text())
         dialog(model_id=model_id).exec_()
+        self.show_table(self.model)
 
 
 class LoginWindow(QDialog):
