@@ -81,7 +81,9 @@ class DiskDialog(QDialog):
         self.le_title.setText(disk.title)
         self.le_director.setText(disk.director)
         self.le_year.setText(str(disk.year))
-        self.cd_existance.setChecked(disk.existance)
+        # self.le_genre.setText()
+        # self.le_actors.setText()
+        self.cb_existance.setChecked(disk.existance)
         self.de_acq_date.setDate(from_date(disk.acq_date))
         self.sb_rating.setValue(disk.rating)
 
@@ -92,11 +94,39 @@ class DiskDialog(QDialog):
             "title": str(self.le_title.text()),
             "director": str(self.le_director.text()),
             "year": int(self.le_year.text()),
-            # "actors":
-            # "genre":
             "rating": int(self.sb_rating.value()),
-            "existance": self.cd_existance.checked(),
+            "existance": self.cb_existance.isChecked(),
         }
+        actors = str(self.le_actors.text()).split(', ')
+        genre = str(self.le_actors.text()).split(', ')
+
+        disk = Disk(**disk)
+
+        session = db.get_session()
+
+        # This might be written in a more pythonic way
+        for a in actors:
+            add_act = session.query(Actor).filter(
+                Actor.name == a
+            ).first()
+            disk.actors.append(add_act)
+
+        for g in genre:
+            add_genr = session.query(Genre).filter(
+                Genre.film_genre == g
+            ).first()
+            disk.genre.append(add_genr)
+
+        '''
+        if not all(disk.values()):
+            required_field_empty_warning(self)
+        else:
+        '''
+        if self.disk_id is None:
+            db.insert_objects(disk)
+        else:
+            db.update_object(disk, self.disk_id)
+
 
 
 class CustomerDialog(QDialog):
@@ -170,6 +200,7 @@ class RentalDialog(QDialog):
             Rental.id == self.rental_id
         ).first()
 
+        # TODO: Fix
         self.le_customer.setText(str(rental.rent_customer))
         self.customer_name = rental.customer.name
         self.le_disk.setText(str(rental.rent_customer))
