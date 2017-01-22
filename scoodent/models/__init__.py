@@ -8,12 +8,14 @@ from sqlalchemy.orm import relationship
 from scoodent.common.db import Base
 
 
-actor_disk_table = Table("actor_disk", Base.metadata,
+actor_disk_table = Table(
+    "actor_disk", Base.metadata,
     Column("actor_id", Integer, ForeignKey("actor.id")),
     Column("disk_id", Integer, ForeignKey("disk.id")))
 
 
-genre_disk_table = Table("genre_disk", Base.metadata,
+genre_disk_table = Table(
+    "genre_disk", Base.metadata,
     Column("genre_id", Integer, ForeignKey("genre.id")),
     Column("disk_id", Integer, ForeignKey("disk.id")))
 
@@ -68,8 +70,8 @@ class Rental(Base):
     __tablename__ = "rental"
     id = Column(Integer, primary_key=True)
     # if customer name is deleted, delete all his rents
-    rent_customer = Column(Integer,
-        ForeignKey("customer.id", ondelete="cascade"))
+    rent_customer = Column(
+        Integer, ForeignKey("customer.id", ondelete="cascade"))
     customer = relationship("Customer")
 
     # if disk is deleted, do not delete any rents
