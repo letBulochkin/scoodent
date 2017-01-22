@@ -27,7 +27,9 @@ def to_date(qdate):
 
 def from_datetime(datetime):
 
-    return QDateTime(datetime.year, datetime.month, datetime.day, datetime.hour, datetime.minute)
+    return QDateTime(
+        datetime.year, datetime.month, datetime.day,
+        datetime.hour, datetime.minute)
 
 
 def to_datetime(qdatetime):
@@ -89,6 +91,18 @@ class DiskDialog(QDialog):
 
     def add_disk(self):
 
+        session = db.get_session()
+
+        actors = [
+            resp
+            for name in map(str.strip, str(self.le_actors.text()).split(","))
+            for resp in session.query(Actor).filter(Actor.name == name)]
+
+        genre = [
+            resp
+            for name in map(str.strip, str(self.le_actors.text()).split(","))
+            for resp in session.query(Genre).filter(Genre.film_genre == name)]
+
         disk = {
             "acq_date": to_date(self.de_acq_date.date()),
             "title": str(self.le_title.text()),
@@ -96,37 +110,17 @@ class DiskDialog(QDialog):
             "year": int(self.le_year.text()),
             "rating": int(self.sb_rating.value()),
             "existance": self.cb_existance.isChecked(),
+            "actors": actors,
+            "genre": genre
         }
-        actors = str(self.le_actors.text()).split(', ')
-        genre = str(self.le_actors.text()).split(', ')
 
         disk = Disk(**disk)
 
-        session = db.get_session()
+        # if not all(disk.values()):
+        #     required_field_empty_warning(self)
+        # else:
 
-        # This might be written in a more pythonic way
-        for a in actors:
-            add_act = session.query(Actor).filter(
-                Actor.name == a
-            ).first()
-            disk.actors.append(add_act)
-
-        for g in genre:
-            add_genr = session.query(Genre).filter(
-                Genre.film_genre == g
-            ).first()
-            disk.genre.append(add_genr)
-
-        '''
-        if not all(disk.values()):
-            required_field_empty_warning(self)
-        else:
-        '''
-        if self.disk_id is None:
-            db.insert_objects(disk)
-        else:
-            db.update_object(disk, self.disk_id)
-
+        db.insert_objects(disk, self.disk_id)
 
 
 class CustomerDialog(QDialog):
@@ -154,11 +148,10 @@ class CustomerDialog(QDialog):
         self.le_name.setText(customer.name)
         self.le_passport.setText(customer.passport)
         self.le_ordered.setText(str(customer.ordered))
-        '''
-        self.le_parents_phone.setText(student.parents_phone)
-        self.le_school.setText(student.school)
-        self.de_enter_date.setDate(from_datetime(student.enter_date))
-        '''
+
+        # self.le_parents_phone.setText(student.parents_phone)
+        # self.le_school.setText(student.school)
+        # self.de_enter_date.setDate(from_datetime(student.enter_date))
 
     def add_customer(self):
         # from datetime import datetime
@@ -173,14 +166,11 @@ class CustomerDialog(QDialog):
         if not all(customer.values()):
             required_field_empty_warning(self)
         else:
-            if self.customer_id is None:
-                db.insert_objects(Customer(**customer))
-            else:
-                db.update_object(Customer(**customer), self.customer_id)
+            db.insert_objects(Customer(**customer), self.customer_id)
 
 
 class RentalDialog(QDialog):
-    """Implements reports interaction."""
+    """Implements rentals interaction."""
 
     def __init__(self, model_id=None):
         QDialog.__init__(self)
@@ -212,8 +202,8 @@ class RentalDialog(QDialog):
 
     def add_rental(self):
         """Add rental to DB."""
-        #TODO
 
+        # TODO
         session = db.get_session()
         rental = {
             # "rent_customer": str(self.le_rent_customer()),
@@ -231,13 +221,11 @@ class RentalDialog(QDialog):
         if not all(rental.values()):
             required_field_empty_warning(self)
         else:
-            if self.rental_id is None:
-                db.insert_objects(Rental(**rental))
-            else:
-                db.update_object(Rental(**rental), self.rental_id)
+            db.insert_objects(Rental(**rental), self.rental_id)
 
 
 class GenreDialog(QDialog):
+    """Implements Genre interaction."""
 
     def __init__(self, model_id=None):
         QDialog.__init__(self)
@@ -264,13 +252,11 @@ class GenreDialog(QDialog):
         if not name:
             required_field_empty_warning(self)
         else:
-            if self.genre_id is None:
-                db.insert_objects(Genre(film_genre=name))
-            else:
-                db.update_object(Genre(film_genre=name), self.genre_id)
+            db.insert_objects(Genre(film_genre=name), self.genre_id)
 
 
 class ActorDialog(QDialog):
+    """Implements Actor interaction."""
 
     def __init__(self, model_id=None):
         QDialog.__init__(self)
@@ -297,10 +283,7 @@ class ActorDialog(QDialog):
         if not name:
             required_field_empty_warning(self)
         else:
-            if self.actor_id is None:
-                db.insert_objects(Actor(name=name))
-            else:
-                db.update_object(Actor(name=name), self.actor_id)
+            db.insert_objects(Actor(name=name), self.actor_id)
 
 
 class MainWindow(QMainWindow):

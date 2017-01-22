@@ -10,6 +10,10 @@ from scoodent.common import config
 Base = declarative_base()
 
 
+__SESSION = None
+"""Global session object."""
+
+
 def get_engine(debug=None):
     """Return ORM engine."""
 
@@ -20,28 +24,28 @@ def get_engine(debug=None):
 def get_session(debug=None):
     """Return DB session."""
 
-    engine = get_engine(debug)
-    Base.metadata.bind = engine
-    return sessionmaker(bind=engine)()
+    global __SESSION
+
+    if not __SESSION:
+        engine = get_engine(debug)
+        Base.metadata.bind = engine
+        __SESSION = sessionmaker(bind=engine)()
+
+    return __SESSION
 
 
-def insert_objects(obj):
+def insert_objects(obj, obj_id=None):
     """Insert object or objects to DB."""
 
     session = get_session()
     if isinstance(obj, (tuple, list)):
         session.add_all(obj)
     else:
-        session.add(obj)
-    session.commit()
-
-
-def update_object(obj, up_id):
-    """Update object in DB."""
-
-    obj.id = up_id
-
-    session = get_session()
-    upd = session.merge(obj)
+        if obj_id is None:
+            session.add(obj)
+        else:
+            # Updating object
+            obj.id = obj_id
+            session.merge(obj)
 
     session.commit()
