@@ -61,7 +61,6 @@ def required_field_empty_warning(parent, msg="One or more fields are empty."):
 
 # TODO: Update list of required fields
 class DiskDialog(QDialog):
-    # TODO: add M-M insertions
 
     def __init__(self, model_id=None):
         QDialog.__init__(self)
@@ -80,11 +79,17 @@ class DiskDialog(QDialog):
             Disk.id == self.disk_id
         ).first()
 
+        genre = [
+            str(gen.film_genre) for gen in disk.genre]
+
+        actors = [
+            act.name for act in disk.actors]
+
         self.le_title.setText(disk.title)
         self.le_director.setText(disk.director)
         self.le_year.setText(str(disk.year))
-        # self.le_genre.setText()
-        # self.le_actors.setText()
+        self.le_genre.setText(", ".join(genre))
+        self.le_actors.setText(", ".join(actors))
         self.cb_existance.setChecked(disk.existance)
         self.de_acq_date.setDate(from_date(disk.acq_date))
         self.sb_rating.setValue(disk.rating)
@@ -100,7 +105,7 @@ class DiskDialog(QDialog):
 
         genre = [
             resp
-            for name in map(str.strip, str(self.le_actors.text()).split(","))
+            for name in map(str.strip, str(self.le_genre.text()).split(","))
             for resp in session.query(Genre).filter(Genre.film_genre == name)]
 
         disk = {
