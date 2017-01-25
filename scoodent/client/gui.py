@@ -6,7 +6,7 @@ from PyQt4 import uic
 from PyQt4.QtCore import QDate, QDateTime
 from PyQt4.QtGui import (
     QDialog, QItemSelectionModel, QLineEdit, QMainWindow,
-    QMessageBox, QPushButton, QTableWidgetItem, QVBoxLayout
+    QMessageBox, QPushButton, QTableWidgetItem, QVBoxLayout, QLabel
 )
 
 from scoodent.common import db, config
@@ -195,38 +195,43 @@ class RentalDialog(QDialog):
             Rental.id == self.rental_id
         ).first()
 
-        # TODO: Fix
+        # TODO: Disk return time
         self.le_customer.setText(str(rental.rent_customer))
-        self.customer_name = rental.customer.name
-        self.le_disk.setText(str(rental.rent_customer))
-        self.disk_title = rental.disk.title
-        self.cd_returned.setChecked(rental.returned)
+        self.customer_name.setText(
+            session.query(Customer).filter(
+                Customer.id == rental.rent_customer
+            ).first().name
+        )
+        self.le_disk.setText(str(rental.rent_disk))
+        self.disk_title.setText(
+            session.query(Disk).filter(
+                Disk.id == rental.rent_disk
+            ).first().title
+        )
+        self.cb_returned.setChecked(rental.returned)
         self.dte_time_taken.setDateTime(from_datetime(rental.time_taken))
-        # self.dte_time_returned.setDateTime(from_datetime(rental.time_returned))
-        self.le_deposit.setText(rental.deposit)
+        self.dte_time_returned.setDateTime(from_datetime(rental.time_returned))
+        self.le_deposit.setText(str(rental.deposit))
 
     def add_rental(self):
         """Add rental to DB."""
 
-        # TODO
         session = db.get_session()
         rental = {
-            # "rent_customer": str(self.le_rent_customer()),
-            # "rent_disk": str(self.le_rent_disk()),
-            "rent_customer": session.query(Customer).filter(
-                Customer.id == int(self.le_customer.text())),
-            "rent_disk": session.query(Disk).filter(
-                Disk.id == int(self.le_disk.text())),
-            "returned": self.cd_returned.checked(),
-            "time_taken": to_datetime(self.dte_time_taken.datetime()),
-            # "time_returned"
+            "rent_customer": int(self.le_customer.text()),
+            "rent_disk": int(self.le_disk.text()),
+            "returned": self.cb_returned.isChecked(),
+            "time_taken": self.dte_time_taken.dateTime().toPyDateTime(),
+            "time_returned": self.dte_time_returned.dateTime().toPyDateTime(),
             "deposit": int(self.le_deposit.text()),
         }
 
-        if not all(rental.values()):
-            required_field_empty_warning(self)
-        else:
-            db.insert_objects(Rental(**rental), self.rental_id)
+        # TODO: Do smth with disk return time
+        # if not all(rental.values()):
+        #    required_field_empty_warning(self)
+        # else:
+
+        db.insert_objects(Rental(**rental), self.rental_id)
 
 
 class GenreDialog(QDialog):
