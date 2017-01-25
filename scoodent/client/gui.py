@@ -378,7 +378,8 @@ class MainWindow(QMainWindow):
             return
 
         session = db.get_session()
-        session.query(self.model).filter(self.model.id == model_id).delete()
+        rm_model = session.query(self.model).filter(self.model.id == model_id).first()
+        session.delete(rm_model)
         session.commit()
         self.show_table(self.model)
 
