@@ -181,14 +181,28 @@ class RentalDialog(QDialog):
         QDialog.__init__(self)
         uic.loadUi(config.UI["rental_dialog"], self)
 
+        self.upd = False
+
         self.rental_id = model_id
         self.pb_add_rental.clicked.connect(self.add_rental)
 
+        def switch():
+            self.dte_time_returned.setEnabled(True)
+            self.upd = True
+
+        # TODO: Rewrite this
         if model_id is not None:
             self.load_rental_info()
+            if self.cb_returned.isChecked():
+                self.dte_time_returned.setEnabled(True)
+            elif not self.cb_returned.isChecked():
+                self.cb_returned.stateChanged.connect(lambda: switch())
+
 
     def load_rental_info(self):
         """Get all needed info from DB."""
+
+        self.cb_returned.setEnabled(True)
 
         session = db.get_session()
         rental = session.query(Rental).filter(
@@ -208,7 +222,7 @@ class RentalDialog(QDialog):
                 Disk.id == rental.rent_disk
             ).first().title
         )
-        self.cb_returned.setChecked(rental.returned)
+        # self.cb_returned.setChecked(rental.returned)
         self.dte_time_taken.setDateTime(from_datetime(rental.time_taken))
         self.dte_time_returned.setDateTime(from_datetime(rental.time_returned))
         self.le_deposit.setText(str(rental.deposit))
@@ -216,11 +230,12 @@ class RentalDialog(QDialog):
     def add_rental(self):
         """Add rental to DB."""
 
+        # TODO: Check whether disk is available
         session = db.get_session()
         rental = {
             "rent_customer": int(self.le_customer.text()),
             "rent_disk": int(self.le_disk.text()),
-            "returned": self.cb_returned.isChecked(),
+            "returned": False,
             "time_taken": self.dte_time_taken.dateTime().toPyDateTime(),
             "time_returned": self.dte_time_returned.dateTime().toPyDateTime(),
             "deposit": int(self.le_deposit.text()),
@@ -232,6 +247,10 @@ class RentalDialog(QDialog):
         # else:
 
         db.insert_objects(Rental(**rental), self.rental_id)
+        # TODO: implement this via ORM trigger, not user interface
+        r_disk = session.query(Disk).filter(Disk.id == rental["rent_disk"]).first()
+        r_disk.existance = self.upd
+        db.insert_objects(r_disk, r_disk.id)
 
 
 class GenreDialog(QDialog):
