@@ -6,7 +6,7 @@ from PyQt4 import uic
 from PyQt4.QtCore import QDate, QDateTime
 from PyQt4.QtGui import (
     QDialog, QItemSelectionModel, QLineEdit, QMainWindow,
-    QMessageBox, QPushButton, QTableWidgetItem, QVBoxLayout, QLabel
+    QMessageBox, QPushButton, QTableWidgetItem, QVBoxLayout, QLabel, QHeaderView
 )
 
 from scoodent.common import db, config
@@ -27,9 +27,14 @@ def to_date(qdate):
 
 def from_datetime(datetime):
 
-    return QDateTime(
-        datetime.year, datetime.month, datetime.day,
-        datetime.hour, datetime.minute)
+    if datetime is not None:
+        return QDateTime(
+            datetime.year, datetime.month,
+            datetime.day,datetime.hour,
+            datetime.minute
+            )
+    else:
+        return QDateTime.currentDateTime()
 
 
 def to_datetime(qdatetime):
@@ -41,6 +46,22 @@ def to_datetime(qdatetime):
         month=qdatetime.month(),
         year=qdatetime.year()
     )
+
+
+def count_curr_deposit():
+    """Count sum of all deposits available."""
+
+    res = 0
+
+    session = db.get_session()
+    depo = session.query(Rental).filter(
+        Rental.time_returned == None
+    ).all()
+
+    for i in depo:
+        res += i.deposit
+
+    return res
 
 
 class DeleteDialog(QDialog):
@@ -198,7 +219,6 @@ class RentalDialog(QDialog):
             elif not self.cb_returned.isChecked():
                 self.cb_returned.stateChanged.connect(lambda: switch())
 
-
     def load_rental_info(self):
         """Get all needed info from DB."""
 
@@ -222,7 +242,6 @@ class RentalDialog(QDialog):
                 Disk.id == rental.rent_disk
             ).first().title
         )
-        # self.cb_returned.setChecked(rental.returned)
         self.dte_time_taken.setDateTime(from_datetime(rental.time_taken))
         self.dte_time_returned.setDateTime(from_datetime(rental.time_returned))
         self.le_deposit.setText(str(rental.deposit))
@@ -237,9 +256,13 @@ class RentalDialog(QDialog):
             "rent_disk": int(self.le_disk.text()),
             "returned": False,
             "time_taken": self.dte_time_taken.dateTime().toPyDateTime(),
-            "time_returned": self.dte_time_returned.dateTime().toPyDateTime(),
+            "time_returned": None,
             "deposit": int(self.le_deposit.text()),
         }
+
+        if self.upd:
+            rental["returned"] = True
+            rental["time_returned"] = self.dte_time_returned.dateTime().toPyDateTime()
 
         # TODO: Do smth with disk return time
         # if not all(rental.values()):
@@ -247,6 +270,7 @@ class RentalDialog(QDialog):
         # else:
 
         db.insert_objects(Rental(**rental), self.rental_id)
+
         # TODO: implement this via ORM trigger, not user interface
         r_disk = session.query(Disk).filter(Disk.id == rental["rent_disk"]).first()
         r_disk.existance = self.upd
@@ -373,12 +397,15 @@ class MainWindow(QMainWindow):
         self.table_widget.setRowCount(rows)
         self.table_widget.setColumnCount(cols)
         self.table_widget.setHorizontalHeaderLabels(names)
+        self.table_widget.horizontalHeader().setResizeMode(QHeaderView.Fixed)
         # self.table_widget.sortByColumn(0, Qt.AscendingOrder)
 
         for row in range(rows):
             for col in range(cols):
                 item = QTableWidgetItem(str(data[row].__dict__[names[col]]))
                 self.table_widget.setItem(row, col, item)
+
+        self.l_curr_deposit.setText(str(count_curr_deposit()))
 
     def select_table_row(self, row, column):
         """Select current table row."""
